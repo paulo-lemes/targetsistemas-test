@@ -191,3 +191,4 @@ function getReversedString(string) {
 }
 
 getReversedString(stringExample);
+getReversedString("!odnum álO");
