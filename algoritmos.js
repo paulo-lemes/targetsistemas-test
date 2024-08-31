@@ -53,19 +53,23 @@ showMessageIfNumberIsInFibonacciSequence(987); // número pertence à sequência
 const faturamento = require("./faturamento.json");
 const weekendDays = ["Sábado", "Domingo"];
 
-function getLowestDailyRevenue(revenueJson) {
-  const daysWithNoRevenue = [];
-  let lowestRevenueDay;
+function getBusinessDaysRevenues(revenueJson) {
+  return revenueJson.filter(
+    (revenue) =>
+      !weekendDays.includes(revenue.dia_da_semana) && !revenue.feriado
+  );
+}
 
-  for (const revenue of revenueJson) {
-    if (!weekendDays.includes(revenue.dia_da_semana) && !revenue.feriado) {
-      if (revenue.valor === 0) {
-        daysWithNoRevenue.push(revenue);
-      } else {
-        if (lowestRevenueDay === undefined) lowestRevenueDay = revenue;
-        lowestRevenueDay =
-          revenue.valor < lowestRevenueDay.valor ? revenue : lowestRevenueDay;
-      }
+function getLowestDailyRevenue(revenueJson) {
+  const filteredRevenueJson = getBusinessDaysRevenues(revenueJson);
+  const daysWithNoRevenue = [];
+  let lowestRevenueDay = revenueJson.find((revenue) => revenue.valor > 0);
+
+  for (const revenue of filteredRevenueJson) {
+    if (revenue.valor === 0) {
+      daysWithNoRevenue.push(revenue);
+    } else {
+      if (revenue.valor < lowestRevenueDay.valor) lowestRevenueDay = revenue;
     }
   }
 
@@ -82,7 +86,44 @@ function getLowestDailyRevenue(revenueJson) {
   return lowestRevenueDay;
 }
 
+function getHighestDailyRevenue(revenueJson) {
+  let highestRevenueDay = revenueJson[0];
+
+  for (const revenue of revenueJson) {
+    if (revenue.valor > highestRevenueDay.valor) highestRevenueDay = revenue;
+  }
+
+  console.log(
+    `Dia com maior faturamento: ${highestRevenueDay.dia} - ${highestRevenueDay.dia_da_semana} - Faturamento: ${highestRevenueDay.valor}`
+  );
+  return highestRevenueDay;
+}
+
+function getDaysWithAboveAverageRevenue(revenueJson) {
+  const averageRevenue =
+    revenueJson.reduce((sum, revenue) => sum + revenue.valor, 0) /
+    revenueJson.length;
+  const filteredRevenues = revenueJson.filter(
+    (revenue) => revenue.valor > averageRevenue
+  );
+
+  console.log(
+    `Dias com faturamento acima da média mensal (R$${averageRevenue.toFixed(
+      2
+    )}):`
+  );
+  filteredRevenues.forEach((item) => {
+    console.log(
+      `${item.dia} - ${item.dia_da_semana} - Faturamento: ${item.valor}`
+    );
+  });
+
+  return filteredRevenues;
+}
+
 getLowestDailyRevenue(faturamento.diario);
+getHighestDailyRevenue(faturamento.diario);
+getDaysWithAboveAverageRevenue(faturamento.diario);
 
 // 4) Dado o valor de faturamento mensal de uma distribuidora, detalhado por estado:
 // • SP – R$67.836,43
